@@ -4,7 +4,6 @@ package com.bandb.cas.boot;
  * @author buddika on 4/7/19
  * @project bandb-cas
  */
-import com.bandb.cas.controller.UserController;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -14,7 +13,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import java.util.Date;
 
 @SpringBootApplication
 @EnableJpaAuditing

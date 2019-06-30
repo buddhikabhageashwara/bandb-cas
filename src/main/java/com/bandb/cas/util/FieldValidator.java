@@ -1,7 +1,9 @@
 package com.bandb.cas.util;
 
+import com.bandb.cas.model.User;
 import com.bandb.cas.util.enums.ValidateType;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -14,111 +16,79 @@ import java.util.*;
  */
 public class FieldValidator {
 
+    final static Logger logger = Logger.getLogger(FieldValidator.class);
+
     @Autowired
     static MessageSource messageSource;
 
-    public static LinkedHashMap validateField(LinkedHashMap validateData){
+    public static LinkedHashMap validateField(LinkedHashMap validateData, User userBean){
 
-        LinkedHashMap validateResult=null;
-
-        boolean isValidationFailed=true;
-
+        String validationType = "";
+        String validationMessage = "";
+        String messageProperty = "";
+        LinkedHashMap validateResult = new LinkedHashMap<String,String>();
+        String isValidationFailed = "true";
         Set entrySet = validateData.entrySet();
-
         Iterator it = entrySet.iterator();
 
         while(it.hasNext()) {
 
             Map.Entry mapEntry = (Map.Entry) it.next();
 
-            switch (ValidateType.valueOf( mapEntry.getKey().toString() )){
+            validationType = mapEntry.getKey().toString();
 
-                case EMAIL_NOT_NULL_NOT_EMPTY:
+            logger.debug("["+userBean.gettRXID()+"] - validation started for "+
+                    mapEntry.getKey().toString()+" type");
 
-                    validateResult=new LinkedHashMap<String,String>();
+            switch (ValidateType.valueOf(validationType)){
 
-                    isValidationFailed=validateEmail(mapEntry.getValue().toString());
+                case USERNAME_EMAIL_NOT_NULL_NOT_EMPTY:
 
-                    if(isValidationFailed){
+                    messageProperty = validateEmail(mapEntry.getValue().toString());
+                    break;
 
+                case PASSWORD_POLICY_1:
 
-                        validateResult.put(messageSource.getMessage("email.validation.fail",
-                                null, LocaleContextHolder.getLocale()),isValidationFailed);
+                case PASSWORD_POLICY_2:
 
-                    }else {
+                case PASSWORD_POLICY_3:
 
-                        validateResult.put(messageSource.getMessage("email.validation.success",
-                                null, LocaleContextHolder.getLocale()),isValidationFailed);
-
-                    }
-
+                    messageProperty = validatePassword(mapEntry.getValue().toString(),
+                            ValidateType.valueOf(validationType));
                     break;
 
                 case STRING_NOT_NULL_NOT_EMPTY:
 
-                    messageSource.getMessage("email.validation.fail",
+                    messageSource.getMessage("username.email.validation.fail",
                             null, LocaleContextHolder.getLocale());
 
                     break;
 
                 case INT_NOT_ZERO:
 
-                    messageSource.getMessage("email.validation.fail",
+                    messageSource.getMessage("username.email.validation.fail",
                             null, LocaleContextHolder.getLocale());
 
                     break;
 
                 case OBJECT_NOT_NULL:
 
-                    messageSource.getMessage("email.validation.fail",
+                    messageSource.getMessage("username.email.validation.fail",
                             null, LocaleContextHolder.getLocale());
 
                     break;
-
 
                 case LINKED_LIST_NOT_NULL_NOT_ZERO_LENGTH:
 
-                    messageSource.getMessage("email.validation.fail",
-                            null, LocaleContextHolder.getLocale());
-
-                    break;
-
-                case PASSWORD_AT_LEAST_ONE_LOWER_CASE:
-
-                    messageSource.getMessage("email.validation.fail",
-                            null, LocaleContextHolder.getLocale());
-
-                    break;
-
-                case PASSWORD_AT_LEAST_ONE_UPPER_CASE:
-
-                    messageSource.getMessage("email.validation.fail",
-                            null, LocaleContextHolder.getLocale());
-
-                    break;
-
-                case PASSWORD_AT_LEAST_ONE_DIGIT:
-
-                    messageSource.getMessage("email.validation.fail",
-                            null, LocaleContextHolder.getLocale());
-
-                    break;
-
-                case PASSWORD_AT_LEAST_ONE_NON_ALPHANUMERIC_CHARACTER:
-
-                    messageSource.getMessage("email.validation.fail",
-                            null, LocaleContextHolder.getLocale());
-
-                    break;
-
-                case PASSWORD_LENGTH_NOT_LESS_THAN_8:
-
-                    messageSource.getMessage("email.validation.fail",
+                    messageSource.getMessage("username.email.validation.fail",
                             null, LocaleContextHolder.getLocale());
 
                     break;
 
                 default :
+
+                    logger.debug("["+userBean.gettRXID()+"] - there is no validation exist" +
+                            " for such a type call "+validationType);
 
             }
 
@@ -126,29 +96,49 @@ public class FieldValidator {
 
         }
 
+        if(messageProperty.contains(".fail")){
+            isValidationFailed = "true";
+        }else {
+            isValidationFailed = "false";
+        }
+        validationMessage = messageSource.getMessage(messageProperty,
+                null, LocaleContextHolder.getLocale());
+        validateResult.put(isValidationFailed,validationMessage);
+
+        logger.debug("["+userBean.gettRXID()+"] - validation done for "+
+                validationType+" type and return "+isValidationFailed+
+                " with "+validationMessage+" message ");
+
         return validateResult;
 
     }
 
-    private static boolean validateEmail(String email){
+    private static String validateEmail(String email){
 
-        boolean isValidationFail=false;
+        String messageProperty = "username.email.validation.success";
 
-        if(email==null || email.isEmpty()){
+        if(email == null || email.isEmpty()){
 
-            isValidationFail=true;
+            messageProperty = "username.email.validation.fail";
 
-            return isValidationFail;
+            return messageProperty;
 
         }else if (!EmailValidator.getInstance().isValid(email)){
 
-            isValidationFail=true;
+            messageProperty = "username.email.validation.fail";
 
-            return isValidationFail;
+            return messageProperty;
 
         }
 
-        return isValidationFail;
+        return messageProperty;
+    }
+
+    private static String validatePassword(String password, ValidateType passwordPolicy){
+        if(password == null || password.isEmpty()){
+            return "password.validation.empty.fail";
+        }
+        return PasswordPolicyValidator.validate(password,passwordPolicy);
     }
 
 }
