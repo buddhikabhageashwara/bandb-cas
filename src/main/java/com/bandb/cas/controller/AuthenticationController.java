@@ -3,6 +3,7 @@ package com.bandb.cas.controller;
 import com.bandb.cas.model.User;
 import com.bandb.cas.service.impl.UserImpl;
 import com.bandb.cas.util.FieldValidator;
+import com.bandb.cas.util.enums.AuthenticationType;
 import com.bandb.cas.util.enums.ValidateType;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -57,8 +58,16 @@ public class AuthenticationController {
             }},userBean);
 
             if(userNameValidateResult.get("true") != null){
-                userImpl.isAUserExistForCredentials(
-                        user.getcASUsername(),user.getcASPassword());
+
+                if(userImpl.isAUserExistForCredentials(AuthenticationType.USERNAME_PASSWORD,userBean,
+                        user.getcASUsername(),user.getcASPassword()) && userBean.isAllowMultipleLogin()){
+
+
+
+                }
+
+                user.setcASPassword("");
+                user.setcASUsername("");
                 return user;
             }else {
                 user.setcASPassword("");

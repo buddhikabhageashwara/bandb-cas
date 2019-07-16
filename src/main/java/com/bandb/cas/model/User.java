@@ -5,10 +5,15 @@ package com.bandb.cas.model;
  * @project bandb-cas
  */
 
+import com.bandb.cas.util.enums.MultipleLoginPolicy;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "user")
+@Table(name = "cas_user")
 public class User extends Audit{
 
     @Id
@@ -21,6 +26,50 @@ public class User extends Audit{
 
     @Column(name = "cas_password")
     private String cASPassword;
+
+    @Column(name = "password_created_at")
+    private LocalDateTime passwordCreatedAt;
+
+    @Column(name = "fail_attempt")
+    private int failAttempt;
+
+    @Column(name = "is_active", columnDefinition = "tinyint default false")
+    private boolean isActive;
+
+    @Column(name = "allow_multiple_login", columnDefinition = "tinyint default false")
+    private boolean allowMultipleLogin;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
+    private Profile profile;
+
+    @ManyToMany(cascade = { CascadeType.ALL })
+    @JoinTable(
+            name = "user_user_group",
+            joinColumns = { @JoinColumn(name = "user_id") },
+            inverseJoinColumns = { @JoinColumn(name = "group_id") }
+    )
+    Set<UserGroup> userGroups = new HashSet<>();
+
+    public boolean isAllowMultipleLogin() {
+        return allowMultipleLogin;
+    }
+
+    public void setAllowMultipleLogin(boolean allowMultipleLogin) {
+        this.allowMultipleLogin = allowMultipleLogin;
+    }
+
+    public MultipleLoginPolicy getMultipleLoginPolicy() {
+        return multipleLoginPolicy;
+    }
+
+    public void setMultipleLoginPolicy(MultipleLoginPolicy multipleLoginPolicy) {
+        this.multipleLoginPolicy = multipleLoginPolicy;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "multiple_login_policy")
+    private MultipleLoginPolicy multipleLoginPolicy;
 
     private String message;
 

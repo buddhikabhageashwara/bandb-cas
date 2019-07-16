@@ -1,5 +1,8 @@
 package com.bandb.cas.service;
 
+import com.bandb.cas.model.User;
+import com.bandb.cas.util.enums.AuthenticationType;
+
 import java.util.LinkedHashMap;
 
 /**
@@ -8,6 +11,7 @@ import java.util.LinkedHashMap;
  */
 public interface UserService {
 
-    LinkedHashMap isAUserExistForCredentials(String credential1, String credential2);
+    boolean isAUserExistForCredentials(AuthenticationType authenticationType,
+                                             User userBean, String credential1, String credential2);
 
 }
